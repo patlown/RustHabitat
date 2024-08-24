@@ -20,6 +20,7 @@ pub struct AreaChart {
     data: VecDeque<(f32, f32)>, // (time, value)
     max_value: f32,
     start_time: f32,
+    background_color: Color, // Added background color field
 }
 
 impl AreaChart {
@@ -34,6 +35,7 @@ impl AreaChart {
             data: VecDeque::new(),
             max_value: 1.0,
             start_time: 0.0,
+            background_color: Color::new(0.15, 0.15, 0.15, 1.0), // Initialize background color to dark gray
         }
     }
 
@@ -67,7 +69,7 @@ impl AreaChart {
             ctx,
             DrawMode::fill(),
             Rect::new(self.position.x, self.position.y, self.size.x, self.size.y),
-            Color::new(0.15, 0.15, 0.15, 1.0),
+            self.background_color,
         )?;
         canvas.draw(&background, Vec2::new(0.0, 0.0));
 
@@ -144,10 +146,10 @@ impl AreaChart {
         canvas.draw(
             &y_label,
             graphics::DrawParam::default()
-                .dest(Vec2::new(self.position.x - 30.0, self.position.y + self.size.y / 2.0))
+                .dest(Vec2::new(self.position.x, self.position.y + self.size.y / 2.0))
                 .rotation(std::f32::consts::FRAC_PI_2)
                 .color(Color::WHITE)
-                .scale(Vec2::new(0.6, 0.6)),
+                .scale(Vec2::new(1.0, 1.0)),
         );
 
         // Draw x-axis label
@@ -157,7 +159,7 @@ impl AreaChart {
             graphics::DrawParam::default()
                 .dest(Vec2::new(self.position.x + self.size.x / 2.0, self.position.y + self.size.y - 5.0))
                 .color(Color::WHITE)
-                .scale(Vec2::new(0.6, 0.6)),
+                .scale(Vec2::new(1.0, 1.0)),
         );
 
         // Draw current population count

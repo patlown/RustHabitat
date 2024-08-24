@@ -3,9 +3,9 @@ mod simulation;
 mod simulation_space;
 mod area_chart;
 
-use ggez::event;
+use ggez::{event, Context, GameResult};
 use ggez::graphics::{self, Color};
-use ggez::{Context, GameResult};
+use ggez::event::{EventHandler};
 use ggez::glam::Vec2;
 use simulation::SimulationState;
 use simulation_space::SimulationSpace;
@@ -17,21 +17,29 @@ const CHART_WIDTH: f32 = 300.0;
 const CHART_HEIGHT: f32 = 200.0;
 const CHART_MARGIN: f32 = 20.0;
 
-struct GameState {
+// Updated constants for grid
+const GRID_WIDTH: i32 = 80;
+const GRID_HEIGHT: i32 = 60;
+const CELL_SIZE: f32 = 20.0;
+
+struct MainState {
     simulation: SimulationState,
     simulation_space: SimulationSpace,
-    window_size: Vec2,
     predator_chart: AreaChart,
     prey_chart: AreaChart,
     plant_chart: AreaChart,
 }
 
-impl GameState {
-    fn new(grid_width: i32, grid_height: i32, cell_size: f32) -> GameResult<GameState> {
-        let simulation = SimulationState::new(grid_width, grid_height, cell_size)?;
+impl MainState {
+    fn new(_ctx: &mut Context) -> GameResult<MainState> {
+        let simulation = SimulationState::new(GRID_WIDTH, GRID_HEIGHT, CELL_SIZE)?;
+
+        let simulation_space = SimulationSpace::new(Vec2::new(GRID_WIDTH as f32 * CELL_SIZE, GRID_HEIGHT as f32 * CELL_SIZE), CELL_SIZE);
+
+        let chart_start_x = simulation_space.size.x + CHART_MARGIN;
 
         let predator_chart = AreaChart::new(
-            Vec2::new(CHART_MARGIN, CHART_MARGIN),
+            Vec2::new(chart_start_x, CHART_MARGIN),
             Vec2::new(CHART_WIDTH, CHART_HEIGHT),
             Color::RED,
             "Predators".to_string(),
@@ -40,7 +48,7 @@ impl GameState {
         );
 
         let prey_chart = AreaChart::new(
-            Vec2::new(CHART_MARGIN, CHART_HEIGHT + CHART_MARGIN * 2.0),
+            Vec2::new(chart_start_x, CHART_HEIGHT + CHART_MARGIN * 2.0),
             Vec2::new(CHART_WIDTH, CHART_HEIGHT),
             Color::BLUE,
             "Prey".to_string(),
@@ -49,7 +57,7 @@ impl GameState {
         );
 
         let plant_chart = AreaChart::new(
-            Vec2::new(CHART_MARGIN, CHART_HEIGHT * 2.0 + CHART_MARGIN * 3.0),
+            Vec2::new(chart_start_x, CHART_HEIGHT * 2.0 + CHART_MARGIN * 3.0),
             Vec2::new(CHART_WIDTH, CHART_HEIGHT),
             Color::GREEN,
             "Plants".to_string(),
@@ -57,17 +65,9 @@ impl GameState {
             TrackingStat::Population,
         );
 
-        let window_size = Vec2::new(
-            simulation.grid_size.x + CHART_WIDTH + CHART_MARGIN,
-            simulation.grid_size.y + CHART_HEIGHT * 3.0 + CHART_MARGIN * 4.0,
-        );
-
-        let simulation_space = SimulationSpace::new(simulation.grid_size, simulation.cell_size);
-
-        Ok(GameState {
+        Ok(MainState {
             simulation,
             simulation_space,
-            window_size,
             predator_chart,
             prey_chart,
             plant_chart,
@@ -75,12 +75,11 @@ impl GameState {
     }
 }
 
-impl event::EventHandler<ggez::GameError> for GameState {
+impl EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         let dt = ctx.time.delta().as_secs_f32();
         self.simulation.update(dt);
 
-        // Update charts
         self.predator_chart.update(self.simulation.time, &self.simulation.entities);
         self.prey_chart.update(self.simulation.time, &self.simulation.entities);
         self.plant_chart.update(self.simulation.time, &self.simulation.entities);
@@ -91,10 +90,8 @@ impl event::EventHandler<ggez::GameError> for GameState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let mut canvas = graphics::Canvas::from_frame(ctx, Color::BLACK);
 
-        // Draw simulation space
         self.simulation_space.draw(ctx, &mut canvas, &self.simulation)?;
 
-        // Draw area charts
         self.predator_chart.draw(ctx, &mut canvas)?;
         self.prey_chart.draw(ctx, &mut canvas)?;
         self.plant_chart.draw(ctx, &mut canvas)?;
@@ -105,19 +102,13 @@ impl event::EventHandler<ggez::GameError> for GameState {
 }
 
 pub fn main() -> GameResult {
-    let grid_width = 50;
-    let grid_height = 50;
-    let cell_size = 20.0;
+    let window_width = GRID_WIDTH as f32 * CELL_SIZE + CHART_WIDTH + CHART_MARGIN * 3.0;
+    let window_height = (GRID_HEIGHT as f32 * CELL_SIZE).max(CHART_HEIGHT * 3.0 + CHART_MARGIN * 4.0);
 
-    let state = GameState::new(grid_width, grid_height, cell_size)?;
-
-    let cb = ggez::ContextBuilder::new("ecosystem_simulation", "YourName")
+    let cb = ggez::ContextBuilder::new("ecosystem_simulation", "Your Name")
         .window_setup(ggez::conf::WindowSetup::default().title("Ecosystem Simulation"))
-        .window_mode(ggez::conf::WindowMode::default().dimensions(
-            state.window_size.x,
-            state.window_size.y,
-        ));
-
-    let (ctx, event_loop) = cb.build()?;
+        .window_mode(ggez::conf::WindowMode::default().dimensions(window_width, window_height));
+    let (mut ctx, event_loop) = cb.build()?;
+    let state = MainState::new(&mut ctx)?;
     event::run(ctx, event_loop, state)
 }

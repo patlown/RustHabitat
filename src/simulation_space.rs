@@ -1,60 +1,59 @@
-use ggez::graphics::{Canvas, Color, Mesh};
+use ggez::graphics::{self, Canvas, Color};
 use ggez::glam::Vec2;
 use ggez::{Context, GameResult};
 
 use crate::simulation::SimulationState;
-use crate::entity::Entity;
 
 pub struct SimulationSpace {
-    grid_size: Vec2,
+    pub size: Vec2,
     cell_size: f32,
 }
 
 impl SimulationSpace {
     pub fn new(grid_size: Vec2, cell_size: f32) -> Self {
         SimulationSpace {
-            grid_size,
+            size: grid_size,
             cell_size,
         }
     }
 
     pub fn draw(&self, ctx: &mut Context, canvas: &mut Canvas, simulation: &SimulationState) -> GameResult {
-        self.draw_grid(ctx, canvas)?;
-        self.draw_entities(ctx, canvas, &simulation.entities)?;
-        Ok(())
-    }
+        // Draw light gray background for the grid
+        let background = graphics::Mesh::new_rectangle(
+            ctx,
+            graphics::DrawMode::fill(),
+            graphics::Rect::new(0.0, 0.0, self.size.x, self.size.y),
+            Color::from_rgb(220, 220, 220), // Light gray
+        )?;
+        canvas.draw(&background, Vec2::ZERO);
 
-    fn draw_grid(&self, ctx: &mut Context, canvas: &mut Canvas) -> GameResult {
-        let grid_color = Color::new(0.7, 0.7, 0.8, 0.3);
-
-        for x in (0..=self.grid_size.x as i32).step_by(self.cell_size as usize) {
-            let x = x as f32;
-            let line = Mesh::new_line(
+        // Draw grid lines
+        for i in 0..=self.size.x as i32 / self.cell_size as i32 {
+            let x = i as f32 * self.cell_size;
+            let line = graphics::Mesh::new_line(
                 ctx,
-                &[Vec2::new(x, 0.0), Vec2::new(x, self.grid_size.y)],
+                &[Vec2::new(x, 0.0), Vec2::new(x, self.size.y)],
                 1.0,
-                grid_color,
+                Color::from_rgb(200, 200, 200), // Slightly darker gray for grid lines
             )?;
-            canvas.draw(&line, Vec2::new(0.0, 0.0));
+            canvas.draw(&line, Vec2::ZERO);
+        }
+        for i in 0..=self.size.y as i32 / self.cell_size as i32 {
+            let y = i as f32 * self.cell_size;
+            let line = graphics::Mesh::new_line(
+                ctx,
+                &[Vec2::new(0.0, y), Vec2::new(self.size.x, y)],
+                1.0,
+                Color::from_rgb(200, 200, 200), // Slightly darker gray for grid lines
+            )?;
+            canvas.draw(&line, Vec2::ZERO);
         }
 
-        for y in (0..=self.grid_size.y as i32).step_by(self.cell_size as usize) {
-            let y = y as f32;
-            let line = Mesh::new_line(
-                ctx,
-                &[Vec2::new(0.0, y), Vec2::new(self.grid_size.x, y)],
-                1.0,
-                grid_color,
-            )?;
-            canvas.draw(&line, Vec2::new(0.0, 0.0));
-        }
-        Ok(())
-    }
-
-    fn draw_entities(&self, ctx: &mut Context, canvas: &mut Canvas, entities: &[Entity]) -> GameResult {
-        for entity in entities {
+        // Draw entities
+        for entity in &simulation.entities {
             entity.draw(ctx, canvas)?;
         }
+
         Ok(())
     }
 }
