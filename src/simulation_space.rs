@@ -1,4 +1,4 @@
-use ggez::graphics::{self, Canvas, Color, DrawMode, Mesh};
+use ggez::graphics::{Canvas, Color, Mesh};
 use ggez::glam::Vec2;
 use ggez::{Context, GameResult};
 
