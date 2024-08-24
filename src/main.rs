@@ -1,24 +1,33 @@
 mod entity;
+mod plot;
 
 use ggez::event;
-use ggez::graphics::{self, Color, DrawMode, Mesh, Rect};
+use ggez::graphics::{self, Color, Mesh};
 use ggez::{Context, GameResult};
 use ggez::glam::Vec2;
 use rand::Rng;
 use entity::Entity;
+use plot::Plot;
 
-const PLOT_WIDTH: f32 = 200.0;
-const PLOT_HEIGHT: f32 = 150.0;
+const PLOT_WIDTH: f32 = 300.0;
+const PLOT_HEIGHT: f32 = 200.0;
+const PADDING: f32 = 20.0;
 
 struct GridState {
     grid_size: Vec2,
+    window_size: Vec2,
     cell_size: f32,
     entities: Vec<Entity>,
+    plot: Plot,
 }
 
 impl GridState {
     fn new(grid_width: i32, grid_height: i32, cell_size: f32) -> GameResult<GridState> {
         let grid_size = Vec2::new(grid_width as f32 * cell_size, grid_height as f32 * cell_size);
+        let window_size = Vec2::new(
+            grid_size.x + PLOT_WIDTH + PADDING,
+            f32::max(grid_size.y, PLOT_HEIGHT)
+        );
         let mut entities = Vec::new();
         let mut rng = rand::thread_rng();
 
@@ -49,54 +58,20 @@ impl GridState {
             ));
         }
 
+        let plot_position = Vec2::new(
+            grid_size.x + PADDING,
+            (window_size.y - PLOT_HEIGHT) / 2.0
+        );
+        let plot_size = Vec2::new(PLOT_WIDTH, PLOT_HEIGHT);
+        let plot = Plot::new(plot_position, plot_size);
+
         Ok(GridState { 
             grid_size,
+            window_size,
             cell_size,
             entities,
+            plot,
         })
-    }
-
-    fn draw_plot_placeholder(&self, ctx: &mut Context, canvas: &mut graphics::Canvas) -> GameResult {
-        let plot_rect = Rect::new(
-            self.grid_size.x - PLOT_WIDTH - 10.0,
-            self.grid_size.y - PLOT_HEIGHT - 10.0,
-            PLOT_WIDTH,
-            PLOT_HEIGHT
-        );
-
-        // Draw plot background
-        let plot_background = Mesh::new_rectangle(
-            ctx,
-            DrawMode::fill(),
-            plot_rect,
-            Color::WHITE,
-        )?;
-        canvas.draw(&plot_background, Vec2::new(0.0, 0.0));
-
-        // Draw plot border
-        let plot_border = Mesh::new_rectangle(
-            ctx,
-            DrawMode::stroke(2.0),
-            plot_rect,
-            Color::BLACK,
-        )?;
-        canvas.draw(&plot_border, Vec2::new(0.0, 0.0));
-
-        // Draw placeholder text
-        let plot_text = graphics::Text::new("Population Plot\n(Placeholder)");
-        let text_pos = Vec2::new(
-            self.grid_size.x - PLOT_WIDTH / 2.0 - 10.0,
-            self.grid_size.y - PLOT_HEIGHT / 2.0 - 10.0
-        );
-        canvas.draw(
-            &plot_text,
-            graphics::DrawParam::default()
-                .color(Color::BLACK)
-                .dest(text_pos)
-                .offset(Vec2::new(0.5, 0.5))
-        );
-
-        Ok(())
     }
 }
 
@@ -143,8 +118,8 @@ impl event::EventHandler<ggez::GameError> for GridState {
             entity.draw(ctx, &mut canvas)?;
         }
 
-        // Draw plot placeholder
-        self.draw_plot_placeholder(ctx, &mut canvas)?;
+        // Draw plot
+        self.plot.draw(ctx, &mut canvas)?;
 
         canvas.finish(ctx)?;
         Ok(())
@@ -156,14 +131,15 @@ pub fn main() -> GameResult {
     let grid_height = 30;
     let cell_size = 20.0;
 
+    let state = GridState::new(grid_width, grid_height, cell_size)?;
+
     let cb = ggez::ContextBuilder::new("grid_simulation", "YourName")
         .window_setup(ggez::conf::WindowSetup::default().title("Ecosystem Simulation"))
         .window_mode(ggez::conf::WindowMode::default().dimensions(
-            grid_width as f32 * cell_size,
-            grid_height as f32 * cell_size,
+            state.window_size.x,
+            state.window_size.y,
         ));
 
     let (ctx, event_loop) = cb.build()?;
-    let state = GridState::new(grid_width, grid_height, cell_size)?;
     event::run(ctx, event_loop, state)
 }
