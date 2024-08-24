@@ -45,7 +45,7 @@ impl Entity {
         );
 
         // Limit max speed
-        const MAX_SPEED: f32 = 100.0;
+        const MAX_SPEED: f32 = 300.0;
         if self.velocity.length() > MAX_SPEED {
             self.velocity = self.velocity.normalize() * MAX_SPEED;
         }

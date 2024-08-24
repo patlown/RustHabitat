@@ -4,7 +4,6 @@ use ggez::event;
 use ggez::graphics::{self, Color};
 use ggez::{Context, GameResult};
 use ggez::glam::Vec2;
-use ggez::timer;
 use entity::Entity;
 
 struct GridState {
