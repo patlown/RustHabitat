@@ -4,6 +4,7 @@ use ggez::event;
 use ggez::graphics::{self, Color};
 use ggez::{Context, GameResult};
 use ggez::glam::Vec2;
+use ggez::timer;
 use entity::Entity;
 
 struct GridState {
@@ -14,11 +15,16 @@ struct GridState {
 
 impl GridState {
     fn new(grid_size: (i32, i32), cell_size: f32) -> GameResult<GridState> {
+        let grid_width = grid_size.0 as f32 * cell_size;
+        let grid_height = grid_size.1 as f32 * cell_size;
+        
         let entity = Entity::new(
-            (grid_size.0 as f32 * cell_size) / 2.0,
-            (grid_size.1 as f32 * cell_size) / 2.0,
+            grid_width / 2.0,
+            grid_height / 2.0,
             cell_size * 0.8,
             Color::RED,
+            grid_width,
+            grid_height,
         );
 
         let s = GridState { 
@@ -31,8 +37,9 @@ impl GridState {
 }
 
 impl event::EventHandler<ggez::GameError> for GridState {
-    fn update(&mut self, _ctx: &mut Context) -> GameResult {
-        self.entity.update(0.1);  // We'll implement actual time delta later
+    fn update(&mut self, ctx: &mut Context) -> GameResult {
+        let dt = ctx.time.delta().as_secs_f32();
+        self.entity.update(dt);
         Ok(())
     }
 
