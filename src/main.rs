@@ -26,8 +26,10 @@ impl event::EventHandler<ggez::GameError> for GridState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let mut canvas = graphics::Canvas::from_frame(
             ctx,
-            graphics::Color::from([0.1, 0.2, 0.3, 1.0]),
+            graphics::Color::from([0.9, 0.9, 1.0, 1.0]),  // Light blue-gray background
         );
+
+        let grid_color = Color::new(0.7, 0.7, 0.8, 0.3);  // Soft, semi-transparent gray
 
         // Draw grid lines
         for x in 0..=self.grid_size.0 {
@@ -38,8 +40,8 @@ impl event::EventHandler<ggez::GameError> for GridState {
                     Vec2::new(x_pos, 0.0),
                     Vec2::new(x_pos, self.grid_size.1 as f32 * self.cell_size),
                 ],
-                1.0,
-                Color::WHITE,
+                1.0,  // Thinner line
+                grid_color,
             )?;
             canvas.draw(&line, Vec2::new(0.0, 0.0));
         }
@@ -53,7 +55,7 @@ impl event::EventHandler<ggez::GameError> for GridState {
                     Vec2::new(self.grid_size.0 as f32 * self.cell_size, y_pos),
                 ],
                 1.0,
-                Color::WHITE,
+                grid_color,
             )?;
             canvas.draw(&line, Vec2::new(0.0, 0.0));
         }
