@@ -18,9 +18,9 @@ const CHART_HEIGHT: f32 = 200.0;
 const CHART_MARGIN: f32 = 20.0;
 
 // Updated constants for grid
-const GRID_WIDTH: i32 = 80;
-const GRID_HEIGHT: i32 = 60;
-const CELL_SIZE: f32 = 20.0;
+const GRID_WIDTH: i32 = 40;
+const GRID_HEIGHT: i32 = 50;
+const CELL_SIZE: f32 = 15.0;
 
 struct MainState {
     simulation: SimulationState,
