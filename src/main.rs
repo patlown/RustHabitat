@@ -21,7 +21,7 @@ impl GridState {
             grid_width / 2.0,
             grid_height / 2.0,
             cell_size * 0.8,
-            Color::RED,
+            Color::GREEN,
             grid_width,
             grid_height,
         );
