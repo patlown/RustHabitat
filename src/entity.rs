@@ -20,6 +20,10 @@ pub struct Entity {
 
 impl Entity {
 
+    pub fn entity_type(&self) -> EntityType {
+        self.entity_type
+    }
+
     pub fn new_predator(x: f32, y: f32, size: f32) -> Self {
         Entity {
             entity_type: EntityType::Predator,

@@ -10,6 +10,7 @@ use ggez::glam::Vec2;
 use plot::Plot;
 use simulation::SimulationState;
 use simulation_space::SimulationSpace;
+use entity::EntityType;
 
 const PLOT_WIDTH: f32 = 300.0;
 const PLOT_HEIGHT: f32 = 200.0;
@@ -19,7 +20,7 @@ struct GameState {
     simulation: SimulationState,
     simulation_space: SimulationSpace,
     window_size: Vec2,
-    plot: Plot,
+    prey_plot: Plot,
 }
 
 impl GameState {
@@ -33,14 +34,19 @@ impl GameState {
             simulation.grid_size.x + PADDING,
             (window_size.y - PLOT_HEIGHT) / 2.0
         );
-        let plot = Plot::new(plot_position, Vec2::new(PLOT_WIDTH, PLOT_HEIGHT));
+        let prey_plot = Plot::new(
+            plot_position, 
+            Vec2::new(PLOT_WIDTH, PLOT_HEIGHT),
+            "Prey Population".to_string(),
+            |entity| entity.entity_type() == EntityType::Prey
+        );
         let simulation_space = SimulationSpace::new(simulation.grid_size, simulation.cell_size);
 
         Ok(GameState {
             simulation,
             simulation_space,
             window_size,
-            plot,
+            prey_plot,
         })
     }
 }
@@ -49,6 +55,7 @@ impl event::EventHandler<ggez::GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         let dt = ctx.time.delta().as_secs_f32();
         self.simulation.update(dt);
+        self.prey_plot.update(&self.simulation.entities);
         Ok(())
     }
 
@@ -59,7 +66,7 @@ impl event::EventHandler<ggez::GameError> for GameState {
         self.simulation_space.draw(ctx, &mut canvas, &self.simulation)?;
 
         // Draw plot
-        self.plot.draw(ctx, &mut canvas)?;
+        self.prey_plot.draw(ctx, &mut canvas)?;
 
         canvas.finish(ctx)?;
         Ok(())
