@@ -1,23 +1,25 @@
-
 use ggez::event;
 use ggez::graphics::{self, Color};
 use ggez::{Context, GameResult};
-use ggez::glam::*;
+use ggez::glam::Vec2;
 
-struct MainState {
-    pos_x: f32,
+struct GridState {
+    grid_size: (i32, i32),
+    cell_size: f32,
 }
 
-impl MainState {
-    fn new() -> GameResult<MainState> {
-        let s = MainState { pos_x: 0.0 };
+impl GridState {
+    fn new(grid_size: (i32, i32), cell_size: f32) -> GameResult<GridState> {
+        let s = GridState { 
+            grid_size, 
+            cell_size,
+        };
         Ok(s)
     }
 }
 
-impl event::EventHandler<ggez::GameError> for MainState {
+impl event::EventHandler<ggez::GameError> for GridState {
     fn update(&mut self, _ctx: &mut Context) -> GameResult {
-        self.pos_x = self.pos_x % 800.0 + 1.0;
         Ok(())
     }
 
@@ -27,16 +29,34 @@ impl event::EventHandler<ggez::GameError> for MainState {
             graphics::Color::from([0.1, 0.2, 0.3, 1.0]),
         );
 
-        let circle = graphics::Mesh::new_circle(
-            ctx,
-            graphics::DrawMode::fill(),
-            Vec2::new(0.0, 0.0),
-            100.0,
-            2.0,
-            Color::WHITE,
-        )?;
+        // Draw grid lines
+        for x in 0..=self.grid_size.0 {
+            let x_pos = x as f32 * self.cell_size;
+            let line = graphics::Mesh::new_line(
+                ctx,
+                &[
+                    Vec2::new(x_pos, 0.0),
+                    Vec2::new(x_pos, self.grid_size.1 as f32 * self.cell_size),
+                ],
+                1.0,
+                Color::WHITE,
+            )?;
+            canvas.draw(&line, Vec2::new(0.0, 0.0));
+        }
 
-        canvas.draw(&circle, Vec2::new(self.pos_x, 250.0));
+        for y in 0..=self.grid_size.1 {
+            let y_pos = y as f32 * self.cell_size;
+            let line = graphics::Mesh::new_line(
+                ctx,
+                &[
+                    Vec2::new(0.0, y_pos),
+                    Vec2::new(self.grid_size.0 as f32 * self.cell_size, y_pos),
+                ],
+                1.0,
+                Color::WHITE,
+            )?;
+            canvas.draw(&line, Vec2::new(0.0, 0.0));
+        }
 
         canvas.finish(ctx)?;
         Ok(())
@@ -44,9 +64,17 @@ impl event::EventHandler<ggez::GameError> for MainState {
 }
 
 pub fn main() -> GameResult {
-    let cb = ggez::ContextBuilder::new("super_simple", "ggez");
+    let grid_size = (40, 30);  // 40x30 grid
+    let cell_size = 20.0;  // 20 pixels per cell
+
+    let cb = ggez::ContextBuilder::new("grid_simulation", "YourName")
+        .window_setup(ggez::conf::WindowSetup::default().title("Grid Simulation"))
+        .window_mode(ggez::conf::WindowMode::default().dimensions(
+            grid_size.0 as f32 * cell_size,
+            grid_size.1 as f32 * cell_size,
+        ));
+
     let (ctx, event_loop) = cb.build()?;
-    let state = MainState::new()?;
+    let state = GridState::new(grid_size, cell_size)?;
     event::run(ctx, event_loop, state)
 }
-    
