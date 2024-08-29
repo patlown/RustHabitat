@@ -8,7 +8,7 @@ use ggez::graphics::{self, Color};
 use ggez::event::{EventHandler};
 use ggez::glam::Vec2;
 use simulation::SimulationState;
-use simulation_space::SimulationSpace;
+use simulation_space::SimulationGrid;
 use area_chart::{AreaChart, TrackingStat};
 use entity::EntityType;
 
@@ -24,7 +24,7 @@ const CELL_SIZE: f32 = 15.0;
 
 struct MainState {
     simulation: SimulationState,
-    simulation_space: SimulationSpace,
+    simulation_space: SimulationGrid,
     predator_chart: AreaChart,
     prey_chart: AreaChart,
     plant_chart: AreaChart,
@@ -34,7 +34,7 @@ impl MainState {
     fn new(_ctx: &mut Context) -> GameResult<MainState> {
         let simulation = SimulationState::new(GRID_WIDTH, GRID_HEIGHT, CELL_SIZE)?;
 
-        let simulation_space = SimulationSpace::new(Vec2::new(GRID_WIDTH as f32 * CELL_SIZE, GRID_HEIGHT as f32 * CELL_SIZE), CELL_SIZE);
+        let simulation_space = SimulationGrid::new(Vec2::new(GRID_WIDTH as f32 * CELL_SIZE, GRID_HEIGHT as f32 * CELL_SIZE), CELL_SIZE);
 
         let chart_start_x = simulation_space.size.x + CHART_MARGIN;
 

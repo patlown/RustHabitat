@@ -4,14 +4,14 @@ use ggez::{Context, GameResult};
 
 use crate::simulation::SimulationState;
 
-pub struct SimulationSpace {
+pub struct SimulationGrid {
     pub size: Vec2,
     cell_size: f32,
 }
 
-impl SimulationSpace {
+impl SimulationGrid {
     pub fn new(grid_size: Vec2, cell_size: f32) -> Self {
-        SimulationSpace {
+        SimulationGrid {
             size: grid_size,
             cell_size,
         }
